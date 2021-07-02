@@ -562,10 +562,17 @@ class RohonTdApi(TdApi):
 
             # 期权相关
             if contract.product == Product.OPTION:
-                contract.option_underlying = data["UnderlyingInstrID"],
-                contract.option_type = OPTIONTYPE_ROHON2VT.get(data["OptionsType"], None),
-                contract.option_strike = data["StrikePrice"],
-                contract.option_expiry = datetime.strptime(data["ExpireDate"], "%Y%m%d"),
+                # 移除郑商所期权产品名称带有的C/P后缀
+                if contract.exchange == Exchange.CZCE:
+                    contract.option_portfolio = data["ProductID"][:-1]
+                else:
+                    contract.option_portfolio = data["ProductID"]
+
+                contract.option_underlying = data["UnderlyingInstrID"]
+                contract.option_type = OPTIONTYPE_ROHON2VT.get(data["OptionsType"], None)
+                contract.option_strike = data["StrikePrice"]
+                contract.option_index = str(data["StrikePrice"])
+                contract.option_expiry = datetime.strptime(data["ExpireDate"], "%Y%m%d")
 
             self.gateway.on_contract(contract)
 
