@@ -64,7 +64,7 @@ from vnpy.trader.object import (
 )
 from vnpy.trader.utility import get_folder_path
 from vnpy.trader.event import EVENT_TIMER
-from typing import Dict, List
+from typing import Dict, List, Set
 import sys
 from vnpy.event.engine import EventEngine
 
@@ -243,7 +243,7 @@ class RohonMdApi(MdApi):
 
         self.connect_status: bool = False
         self.login_status: bool = False
-        self.subscribed: List[str] = set()
+        self.subscribed: Set = set()
 
         self.userid: str = ""
         self.password: str = ""
