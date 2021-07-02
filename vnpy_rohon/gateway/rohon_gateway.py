@@ -283,6 +283,10 @@ class RohonMdApi(MdApi):
 
     def onRtnDepthMarketData(self, data: dict) -> None:
         """行情数据推送"""
+        # 过滤没有时间戳的异常行情数据
+        if not data["UpdateTime"]:
+            return
+
         symbol: str = data["InstrumentID"]
         contract: ContractData = symbol_contract_map.get(symbol, None)
         if not contract:
