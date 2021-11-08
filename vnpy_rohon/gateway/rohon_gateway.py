@@ -314,7 +314,7 @@ class RohonMdApi(MdApi):
         )
         self.gateway.on_tick(tick)
 
-    def connect(self, address: str, userid: str, password: str, brokerid: int) -> None:
+    def connect(self, address: str, userid: str, password: str, brokerid: str) -> None:
         """连接服务器"""
         self.userid = userid
         self.password = password
@@ -558,10 +558,10 @@ class RohonTdApi(TdApi):
 
             # 期权相关
             if contract.product == Product.OPTION:
-                contract.option_underlying = data["UnderlyingInstrID"],
-                contract.option_type = OPTIONTYPE_ROHON2VT.get(data["OptionsType"], None),
-                contract.option_strike = data["StrikePrice"],
-                contract.option_expiry = datetime.strptime(data["ExpireDate"], "%Y%m%d"),
+                contract.option_underlying = data["UnderlyingInstrID"]
+                contract.option_type = OPTIONTYPE_ROHON2VT.get(data["OptionsType"], None)
+                contract.option_strike = data["StrikePrice"]
+                contract.option_expiry = datetime.strptime(data["ExpireDate"], "%Y%m%d")
 
             self.gateway.on_contract(contract)
 
@@ -649,7 +649,7 @@ class RohonTdApi(TdApi):
         address: str,
         userid: str,
         password: str,
-        brokerid: int,
+        brokerid: str,
         auth_code: str,
         appid: str
     ) -> None:
