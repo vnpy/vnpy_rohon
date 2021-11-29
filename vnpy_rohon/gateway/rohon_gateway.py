@@ -322,7 +322,7 @@ class RohonMdApi(MdApi):
 
         # 禁止重复发起连接，会导致异常崩溃
         if not self.connect_status:
-            path = get_folder_path(self.gateway_name.lower())
+            path = get_folder_path(self.gateway_name.lower() + "\\" + self.userid.lower())
             self.createFtdcMdApi(str(path) + "\\Md")
 
             self.registerFront(address)
@@ -661,7 +661,7 @@ class RohonTdApi(TdApi):
         self.appid = appid
 
         if not self.connect_status:
-            path = get_folder_path(self.gateway_name.lower())
+            path = get_folder_path(self.gateway_name.lower() + "\\" + self.userid.lower())
             self.createFtdcTraderApi(str(path) + "\\Td")
 
             self.subscribePrivateTopic(0)
