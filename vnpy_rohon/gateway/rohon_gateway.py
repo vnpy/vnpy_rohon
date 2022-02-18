@@ -140,6 +140,8 @@ class RohonGateway(BaseGateway):
     vn.py用于对接融航资管中台的交易接口。
     """
 
+    default_name: str = "ROHON"
+
     default_setting: Dict[str, str] = {
         "用户名": "",
         "密码": "",
@@ -152,7 +154,7 @@ class RohonGateway(BaseGateway):
 
     exchanges: List[str] = list(EXCHANGE_ROHON2VT.values())
 
-    def __init__(self, event_engine: EventEngine, gateway_name: str = "ROHON") -> None:
+    def __init__(self, event_engine: EventEngine, gateway_name: str) -> None:
         """构造函数"""
         super().__init__(event_engine, gateway_name)
 
