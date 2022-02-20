@@ -38,3 +38,7 @@ x64/
 
 # PyCharm
 .idea/
+
+dist/
+build/
+*.egg-info/

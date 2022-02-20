@@ -137,7 +137,7 @@ symbol_contract_map: Dict[str, ContractData] = {}
 
 class RohonGateway(BaseGateway):
     """
-    vn.py用于对接融航资管中台的交易接口。
+    VeighNa用于对接融航资管中台的交易接口。
     """
 
     default_name: str = "ROHON"
