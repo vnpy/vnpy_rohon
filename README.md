@@ -63,3 +63,7 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+## 连接
+ 
+如果启动时报错“ImportError: DLL load failed: 找不到指定的模块。”，可自行下载vcredist2010解决。
