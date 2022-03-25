@@ -4,8 +4,36 @@ can't not open file librohonbase.so.1.1,
 please change the file name in vnpy.api.rohon
 from "librohonbase.so" to "librohonbase.so.1.1"
 """
+import sys
 import pytz
 from datetime import datetime
+from typing import Dict, List
+from pathlib import Path
+
+from vnpy.event import EventEngine
+from vnpy.trader.constant import (
+    Direction,
+    Offset,
+    Exchange,
+    OrderType,
+    Product,
+    Status,
+    OptionType
+)
+from vnpy.trader.gateway import BaseGateway
+from vnpy.trader.object import (
+    TickData,
+    OrderData,
+    TradeData,
+    PositionData,
+    AccountData,
+    ContractData,
+    OrderRequest,
+    CancelRequest,
+    SubscribeRequest,
+)
+from vnpy.trader.utility import get_folder_path
+from vnpy.trader.event import EVENT_TIMER
 
 from ..api import (
     MdApi,
@@ -41,32 +69,6 @@ from ..api import (
     THOST_FTDC_VC_CV,
     THOST_FTDC_AF_Delete
 )
-from vnpy.trader.constant import (
-    Direction,
-    Offset,
-    Exchange,
-    OrderType,
-    Product,
-    Status,
-    OptionType
-)
-from vnpy.trader.gateway import BaseGateway
-from vnpy.trader.object import (
-    TickData,
-    OrderData,
-    TradeData,
-    PositionData,
-    AccountData,
-    ContractData,
-    OrderRequest,
-    CancelRequest,
-    SubscribeRequest,
-)
-from vnpy.trader.utility import get_folder_path
-from vnpy.trader.event import EVENT_TIMER
-from typing import Dict, List, Set
-import sys
-from vnpy.event.engine import EventEngine
 
 
 # 委托状态映射
@@ -210,7 +212,7 @@ class RohonGateway(BaseGateway):
         """输出错误信息日志"""
         error_id: int = error["ErrorID"]
         error_msg: str = error["ErrorMsg"]
-        msg = f"{msg}，代码：{error_id}，信息：{error_msg}"
+        msg: str = f"{msg}，代码：{error_id}，信息：{error_msg}"
         self.write_log(msg)
 
     def process_timer_event(self, event) -> None:
@@ -245,7 +247,7 @@ class RohonMdApi(MdApi):
 
         self.connect_status: bool = False
         self.login_status: bool = False
-        self.subscribed: Set = set()
+        self.subscribed: set = set()
 
         self.userid: str = ""
         self.password: str = ""
@@ -465,10 +467,6 @@ class RohonTdApi(TdApi):
         """委托撤单失败回报"""
         self.gateway.write_error("交易撤单失败", error)
 
-    def onRspQueryMaxOrderVolume(self, data: dict, error: dict, reqid: int, last: bool) -> None:
-        """查询最大报单数量回报"""
-        pass
-
     def onRspSettlementInfoConfirm(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """确认结算单回报"""
         self.gateway.write_log("结算信息确认成功")
@@ -487,10 +485,10 @@ class RohonTdApi(TdApi):
 
         if contract:
             # 获取之前缓存的持仓数据缓存
-            key = f"{data['InstrumentID'], data['PosiDirection']}"
+            key: str = f"{data['InstrumentID'], data['PosiDirection']}"
             position: PositionData = self.positions.get(key, None)
             if not position:
-                position = PositionData(
+                position: PositionData = PositionData(
                     symbol=data["InstrumentID"],
                     exchange=contract.exchange,
                     direction=DIRECTION_ROHON2VT[data["PosiDirection"]],
@@ -608,7 +606,7 @@ class RohonTdApi(TdApi):
 
         timestamp: str = f"{data['InsertDate']} {data['InsertTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt = CHINA_TZ.localize(dt)
+        dt: datetime = CHINA_TZ.localize(dt)
 
         order: OrderData = OrderData(
             symbol=symbol,
@@ -641,7 +639,7 @@ class RohonTdApi(TdApi):
 
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt = CHINA_TZ.localize(dt)
+        dt: datetime = CHINA_TZ.localize(dt)
 
         trade: TradeData = TradeData(
             symbol=symbol,
@@ -674,7 +672,7 @@ class RohonTdApi(TdApi):
         self.appid = appid
 
         if not self.connect_status:
-            path = get_folder_path(self.gateway_name.lower())
+            path: Path = get_folder_path(self.gateway_name.lower())
             self.createFtdcTraderApi((str(path) + "\\Td").encode("GBK"))
 
             self.subscribePrivateTopic(0)
