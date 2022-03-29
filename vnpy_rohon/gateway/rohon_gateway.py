@@ -10,9 +10,6 @@ from datetime import datetime
 from ..api import (
     MdApi,
     TdApi,
-    THOST_FTDC_OAS_Submitted,
-    THOST_FTDC_OAS_Accepted,
-    THOST_FTDC_OAS_Rejected,
     THOST_FTDC_OST_NoTradeQueueing,
     THOST_FTDC_OST_PartTradedQueueing,
     THOST_FTDC_OST_AllTraded,
@@ -71,9 +68,6 @@ from vnpy.event.engine import EventEngine
 
 # 委托状态映射
 STATUS_ROHON2VT: Dict[str, Status] = {
-    THOST_FTDC_OAS_Submitted: Status.SUBMITTING,
-    THOST_FTDC_OAS_Accepted: Status.SUBMITTING,
-    THOST_FTDC_OAS_Rejected: Status.REJECTED,
     THOST_FTDC_OST_NoTradeQueueing: Status.NOTTRADED,
     THOST_FTDC_OST_PartTradedQueueing: Status.PARTTRADED,
     THOST_FTDC_OST_AllTraded: Status.ALLTRADED,
@@ -596,6 +590,10 @@ class RohonTdApi(TdApi):
         """委托更新推送"""
         if not self.contract_inited:
             self.order_data.append(data)
+            return
+
+        # 过滤融航接口状态为【未知】的委托推送
+        if data["OrderStatus"] == "a":
             return
 
         symbol: str = data["InstrumentID"]
