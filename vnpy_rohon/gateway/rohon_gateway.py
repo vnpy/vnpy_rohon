@@ -40,6 +40,7 @@ from ..api import (
     TdApi,
     THOST_FTDC_OST_NoTradeQueueing,
     THOST_FTDC_OST_PartTradedQueueing,
+    THOST_FTDC_OST_PartTradedNotQueueing,
     THOST_FTDC_OST_AllTraded,
     THOST_FTDC_OST_Canceled,
     THOST_FTDC_D_Buy,
@@ -73,7 +74,8 @@ STATUS_ROHON2VT: Dict[str, Status] = {
     THOST_FTDC_OST_NoTradeQueueing: Status.NOTTRADED,
     THOST_FTDC_OST_PartTradedQueueing: Status.PARTTRADED,
     THOST_FTDC_OST_AllTraded: Status.ALLTRADED,
-    THOST_FTDC_OST_Canceled: Status.CANCELLED
+    THOST_FTDC_OST_Canceled: Status.CANCELLED,
+    THOST_FTDC_OST_PartTradedNotQueueing: Status.CANCELLED,
 }
 
 # 多空方向映射
