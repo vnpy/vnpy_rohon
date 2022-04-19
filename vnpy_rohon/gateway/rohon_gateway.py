@@ -7,6 +7,7 @@ from "librohonbase.so" to "librohonbase.so.1.1"
 import sys
 import pytz
 from datetime import datetime
+from time import sleep
 from typing import Dict, List
 from pathlib import Path
 
@@ -55,6 +56,7 @@ from ..api import (
     THOST_FTDC_OFEN_CloseToday,
     THOST_FTDC_PC_Futures,
     THOST_FTDC_PC_Options,
+    THOST_FTDC_PC_SpotOption,
     THOST_FTDC_PC_Combination,
     THOST_FTDC_CP_CallOptions,
     THOST_FTDC_CP_PutOptions,
@@ -88,9 +90,11 @@ DIRECTION_ROHON2VT[THOST_FTDC_PD_Long] = Direction.LONG
 DIRECTION_ROHON2VT[THOST_FTDC_PD_Short] = Direction.SHORT
 
 # 委托类型映射
-ORDERTYPE_VT2ROHON: Dict[OrderType, str] = {
-    OrderType.LIMIT: THOST_FTDC_OPT_LimitPrice,
-    OrderType.MARKET: THOST_FTDC_OPT_AnyPrice
+ORDERTYPE_VT2ROHON: Dict[OrderType, tuple] = {
+    OrderType.LIMIT: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV),
+    OrderType.MARKET: (THOST_FTDC_OPT_AnyPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV),
+    OrderType.FAK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_AV),
+    OrderType.FOK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_CV),
 }
 ORDERTYPE_ROHON2VT: Dict[str, OrderType] = {v: k for k, v in ORDERTYPE_VT2ROHON.items()}
 
@@ -116,6 +120,7 @@ EXCHANGE_ROHON2VT: Dict[str, Exchange] = {
 PRODUCT_ROHON2VT: Dict[str, Product] = {
     THOST_FTDC_PC_Futures: Product.FUTURES,
     THOST_FTDC_PC_Options: Product.OPTION,
+    THOST_FTDC_PC_SpotOption: Product.OPTION,
     THOST_FTDC_PC_Combination: Product.SPREAD
 }
 
@@ -222,6 +227,8 @@ class RohonGateway(BaseGateway):
         func()
         self.query_functions.append(func)
 
+        self.md_api.update_date()
+
     def init_query(self) -> None:
         """初始化查询任务"""
         self.count: int = 0
@@ -248,6 +255,8 @@ class RohonMdApi(MdApi):
         self.userid: str = ""
         self.password: str = ""
         self.brokerid: str = ""
+
+        self.current_date: str = datetime.now().strftime("%Y%m%d")
 
     def onFrontConnected(self) -> None:
         """服务器连接成功回报"""
@@ -287,12 +296,19 @@ class RohonMdApi(MdApi):
         if not data["UpdateTime"]:
             return
 
+        # 过滤还没有收到合约数据前的行情推送
         symbol: str = data["InstrumentID"]
         contract: ContractData = symbol_contract_map.get(symbol, None)
         if not contract:
             return
 
-        timestamp: str = f"{data['ActionDay']} {data['UpdateTime']}.{int(data['UpdateMillisec']/100)}"
+        # 对大商所的交易日字段取本地日期
+        if not data["ActionDay"] or contract.exchange == Exchange.DCE:
+            date_str: str = self.current_date
+        else:
+            date_str: str = data["ActionDay"]
+
+        timestamp: str = f"{date_str} {data['UpdateTime']}.{int(data['UpdateMillisec']/100)}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S.%f")
         dt: datetime = CHINA_TZ.localize(dt)
 
@@ -302,6 +318,7 @@ class RohonMdApi(MdApi):
             datetime=dt,
             name=contract.name,
             volume=data["Volume"],
+            turnover=data["Turnover"],
             open_interest=data["OpenInterest"],
             last_price=adjust_price(data["LastPrice"]),
             limit_up=data["UpperLimitPrice"],
@@ -316,6 +333,28 @@ class RohonMdApi(MdApi):
             ask_volume_1=data["AskVolume1"],
             gateway_name=self.gateway_name
         )
+
+        if data["BidVolume2"] or data["AskVolume2"]:
+            tick.bid_price_2 = adjust_price(data["BidPrice2"])
+            tick.bid_price_3 = adjust_price(data["BidPrice3"])
+            tick.bid_price_4 = adjust_price(data["BidPrice4"])
+            tick.bid_price_5 = adjust_price(data["BidPrice5"])
+
+            tick.ask_price_2 = adjust_price(data["AskPrice2"])
+            tick.ask_price_3 = adjust_price(data["AskPrice3"])
+            tick.ask_price_4 = adjust_price(data["AskPrice4"])
+            tick.ask_price_5 = adjust_price(data["AskPrice5"])
+
+            tick.bid_volume_2 = data["BidVolume2"]
+            tick.bid_volume_3 = data["BidVolume3"]
+            tick.bid_volume_4 = data["BidVolume4"]
+            tick.bid_volume_5 = data["BidVolume5"]
+
+            tick.ask_volume_2 = data["AskVolume2"]
+            tick.ask_volume_3 = data["AskVolume3"]
+            tick.ask_volume_4 = data["AskVolume4"]
+            tick.ask_volume_5 = data["AskVolume5"]
+
         self.gateway.on_tick(tick)
 
     def connect(self, address: str, userid: str, password: str, brokerid: str) -> None:
@@ -326,7 +365,7 @@ class RohonMdApi(MdApi):
 
         # 禁止重复发起连接，会导致异常崩溃
         if not self.connect_status:
-            path = get_folder_path(self.gateway_name.lower())
+            path: Path = get_folder_path(self.gateway_name.lower())
             self.createFtdcMdApi((str(path) + "\\Md").encode("GBK"))
 
             self.registerFront(address)
@@ -359,6 +398,10 @@ class RohonMdApi(MdApi):
         if self.connect_status:
             self.exit()
 
+    def update_date(self) -> None:
+        """更新当前日期"""
+        self.current_date = datetime.now().strftime("%Y%m%d")
+
 
 class RohonTdApi(TdApi):
     """"""
@@ -375,8 +418,9 @@ class RohonTdApi(TdApi):
 
         self.connect_status: bool = False
         self.login_status: bool = False
-        self.auth_staus: bool = False
+        self.auth_status: bool = False
         self.login_failed: bool = False
+        self.auth_failed: bool = False
         self.contract_inited: bool = False
 
         self.userid: str = ""
@@ -387,7 +431,6 @@ class RohonTdApi(TdApi):
 
         self.frontid: int = 0
         self.sessionid: int = 0
-
         self.order_data: List[dict] = []
         self.trade_data: List[dict] = []
         self.positions: Dict[str, PositionData] = {}
@@ -410,10 +453,11 @@ class RohonTdApi(TdApi):
     def onRspAuthenticate(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """用户授权验证回报"""
         if not error['ErrorID']:
-            self.auth_staus = True
+            self.auth_status = True
             self.gateway.write_log("交易服务器授权验证成功")
             self.login()
         else:
+            self.auth_failed = True
             self.gateway.write_error("交易服务器授权验证失败", error)
 
     def onRspUserLogin(self, data: dict, error: dict, reqid: int, last: bool) -> None:
@@ -467,8 +511,15 @@ class RohonTdApi(TdApi):
         """确认结算单回报"""
         self.gateway.write_log("结算信息确认成功")
 
-        self.reqid += 1
-        self.reqQryInstrument({}, self.reqid)
+        # 由于流控，单次查询可能失败，通过while循环持续尝试，直到成功发出请求
+        while True:
+            self.reqid += 1
+            n: int = self.reqQryInstrument({}, self.reqid)
+
+            if not n:
+                break
+            else:
+                sleep(1)
 
     def onRspQryInvestorPosition(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """持仓查询回报"""
@@ -493,7 +544,7 @@ class RohonTdApi(TdApi):
                 self.positions[key] = position
 
             # 对于上期所昨仓需要特殊处理
-            if position.exchange == Exchange.SHFE:
+            if position.exchange in {Exchange.SHFE, Exchange.INE}:
                 if data["YdPosition"] and not data["TodayPosition"]:
                     position.yd_volume = data["Position"]
             # 对于其他交易所昨仓的计算
@@ -568,6 +619,7 @@ class RohonTdApi(TdApi):
                 contract.option_type = OPTIONTYPE_ROHON2VT.get(data["OptionsType"], None)
                 contract.option_strike = data["StrikePrice"]
                 contract.option_index = str(data["StrikePrice"])
+                contract.option_listed = datetime.strptime(data["OpenDate"], "%Y%m%d")
                 contract.option_expiry = datetime.strptime(data["ExpireDate"], "%Y%m%d")
 
             self.gateway.on_contract(contract)
@@ -608,11 +660,13 @@ class RohonTdApi(TdApi):
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
         dt: datetime = CHINA_TZ.localize(dt)
 
+        tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
+
         order: OrderData = OrderData(
             symbol=symbol,
             exchange=contract.exchange,
             orderid=orderid,
-            type=ORDERTYPE_ROHON2VT[data["OrderPriceType"]],
+            type=ORDERTYPE_ROHON2VT[tp],
             direction=DIRECTION_ROHON2VT[data["Direction"]],
             offset=OFFSET_ROHON2VT[data["CombOffsetFlag"]],
             price=data["LimitPrice"],
@@ -679,7 +733,6 @@ class RohonTdApi(TdApi):
             self.subscribePublicTopic(0)
 
             self.registerFront(address)
-
             self.init()
 
             self.connect_status = True
@@ -688,6 +741,9 @@ class RohonTdApi(TdApi):
 
     def authenticate(self) -> None:
         """发起授权验证"""
+        if self.auth_failed:
+            return
+
         req: dict = {
             "UserID": self.userid,
             "BrokerID": self.brokerid,
@@ -715,14 +771,24 @@ class RohonTdApi(TdApi):
 
     def send_order(self, req: OrderRequest) -> str:
         """委托下单"""
+        if req.offset not in OFFSET_VT2ROHON:
+            self.gateway.write_log("请选择开平方向")
+            return ""
+
+        if req.type not in ORDERTYPE_VT2ROHON:
+            self.gateway.write_log(f"当前接口不支持该类型的委托{req.type.value}")
+            return ""
         self.order_ref += 1
+
+        tp = ORDERTYPE_VT2ROHON[req.type]
+        price_type, time_condition, volume_condition = tp
 
         rohon_req: dict = {
             "InstrumentID": req.symbol,
             "ExchangeID": req.exchange.value,
             "LimitPrice": req.price,
             "VolumeTotalOriginal": int(req.volume),
-            "OrderPriceType": ORDERTYPE_VT2ROHON.get(req.type, ""),
+            "OrderPriceType": price_type,
             "Direction": DIRECTION_VT2ROHON.get(req.direction, ""),
             "CombOffsetFlag": OFFSET_VT2ROHON.get(req.offset, ""),
             "OrderRef": str(self.order_ref),
@@ -733,22 +799,16 @@ class RohonTdApi(TdApi):
             "ContingentCondition": THOST_FTDC_CC_Immediately,
             "ForceCloseReason": THOST_FTDC_FCC_NotForceClose,
             "IsAutoSuspend": 0,
-            "TimeCondition": THOST_FTDC_TC_GFD,
-            "VolumeCondition": THOST_FTDC_VC_AV,
+            "TimeCondition": time_condition,
+            "VolumeCondition": volume_condition,
             "MinVolume": 1
         }
 
-        if req.type == OrderType.FAK:
-            rohon_req["OrderPriceType"] = THOST_FTDC_OPT_LimitPrice
-            rohon_req["TimeCondition"] = THOST_FTDC_TC_IOC
-            rohon_req["VolumeCondition"] = THOST_FTDC_VC_AV
-        elif req.type == OrderType.FOK:
-            rohon_req["OrderPriceType"] = THOST_FTDC_OPT_LimitPrice
-            rohon_req["TimeCondition"] = THOST_FTDC_TC_IOC
-            rohon_req["VolumeCondition"] = THOST_FTDC_VC_CV
-
         self.reqid += 1
-        self.reqOrderInsert(rohon_req, self.reqid)
+        n = self.reqOrderInsert(rohon_req, self.reqid)
+        if n:
+            self.gateway.write_log(f"委托请求发送失败，错误代码：{n}")
+            return ""
 
         orderid: str = f"{self.frontid}_{self.sessionid}_{self.order_ref}"
         order: OrderData = req.create_order_data(orderid, self.gateway_name)
