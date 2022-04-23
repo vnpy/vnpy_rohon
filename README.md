@@ -1,4 +1,4 @@
-# VeighNa框架的ROHON底层接口
+# VeighNa框架的融航资管系统交易接口
 
 <p align="center">
   <img src ="https://vnpy.oss-cn-shanghai.aliyuncs.com/vnpy-logo.png"/>
@@ -13,7 +13,7 @@
 
 ## 说明
 
-基于融航期货版的6.5.1接口封装开发，接口中自带的是【穿透式实盘环境】的dll文件。
+基于融航期货资管系统的6.5.1接口封装开发，接口中自带的是【穿透式实盘环境】的dll文件。
 
 ## 安装
 
