@@ -42,3 +42,4 @@ x64/
 dist/
 build/
 *.egg-info/
+.vscode/settings.json
