@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-6.5.1.5-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-6.3.19.0-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg" />
     <img src ="https://img.shields.io/github/license/vnpy/vnpy.svg?color=orange"/>
@@ -13,7 +13,7 @@
 
 ## 说明
 
-基于融航期货资管系统的6.5.1接口封装开发，接口中自带的是【穿透式实盘环境】的dll文件。
+基于融航期货资管系统的6.3.19接口封装开发，接口中自带的是【穿透式实盘环境】的dll文件。
 
 ## 安装
 
