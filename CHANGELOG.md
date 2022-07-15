@@ -1,6 +1,7 @@
 # 6.5.1.6版本
 
 1. 使用zoneinfo替换pytz库
+2. 调整安装脚本setup.cfg，添加Python版本限制
 
 # 6.5.1.5版本
 
