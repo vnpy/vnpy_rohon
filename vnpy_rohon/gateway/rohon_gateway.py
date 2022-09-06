@@ -112,7 +112,8 @@ EXCHANGE_ROHON2VT: Dict[str, Exchange] = {
     "SHFE": Exchange.SHFE,
     "CZCE": Exchange.CZCE,
     "DCE": Exchange.DCE,
-    "INE": Exchange.INE
+    "INE": Exchange.INE,
+    "GFEX": Exchange.GFEX
 }
 
 # 产品类型映射
