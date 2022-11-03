@@ -661,6 +661,11 @@ class RohonTdApi(TdApi):
         dt: datetime = dt.replace(tzinfo=CHINA_TZ)
 
         tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
+        if tp not in ORDERTYPE_ROHON2VT:
+            print("收到不支持类型的委托推送--------------")
+            print("委托类型", tp)
+            print(data)
+            return
 
         order: OrderData = OrderData(
             symbol=symbol,
