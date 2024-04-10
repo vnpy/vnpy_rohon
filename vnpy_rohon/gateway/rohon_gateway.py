@@ -4,10 +4,10 @@ can't not open file librohonbase.so.1.1,
 please change the file name in vnpy.api.rohon
 from "librohonbase.so" to "librohonbase.so.1.1"
 """
+
 import sys
 from datetime import datetime
 from time import sleep
-from typing import Dict, List
 from pathlib import Path
 
 from vnpy.event import EventEngine
@@ -71,7 +71,7 @@ from ..api import (
 
 
 # 委托状态映射
-STATUS_ROHON2VT: Dict[str, Status] = {
+STATUS_ROHON2VT: dict[str, Status] = {
     THOST_FTDC_OST_NoTradeQueueing: Status.NOTTRADED,
     THOST_FTDC_OST_PartTradedQueueing: Status.PARTTRADED,
     THOST_FTDC_OST_AllTraded: Status.ALLTRADED,
@@ -80,34 +80,34 @@ STATUS_ROHON2VT: Dict[str, Status] = {
 }
 
 # 多空方向映射
-DIRECTION_VT2ROHON: Dict[Direction, str] = {
+DIRECTION_VT2ROHON: dict[Direction, str] = {
     Direction.LONG: THOST_FTDC_D_Buy,
     Direction.SHORT: THOST_FTDC_D_Sell
 }
-DIRECTION_ROHON2VT: Dict[str, Direction] = {v: k for k, v in DIRECTION_VT2ROHON.items()}
+DIRECTION_ROHON2VT: dict[str, Direction] = {v: k for k, v in DIRECTION_VT2ROHON.items()}
 DIRECTION_ROHON2VT[THOST_FTDC_PD_Long] = Direction.LONG
 DIRECTION_ROHON2VT[THOST_FTDC_PD_Short] = Direction.SHORT
 
 # 委托类型映射
-ORDERTYPE_VT2ROHON: Dict[OrderType, tuple] = {
+ORDERTYPE_VT2ROHON: dict[OrderType, tuple] = {
     OrderType.LIMIT: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV),
     OrderType.MARKET: (THOST_FTDC_OPT_AnyPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV),
     OrderType.FAK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_AV),
     OrderType.FOK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_CV),
 }
-ORDERTYPE_ROHON2VT: Dict[str, OrderType] = {v: k for k, v in ORDERTYPE_VT2ROHON.items()}
+ORDERTYPE_ROHON2VT: dict[str, OrderType] = {v: k for k, v in ORDERTYPE_VT2ROHON.items()}
 
 # 开平方向映射
-OFFSET_VT2ROHON: Dict[Offset, str] = {
+OFFSET_VT2ROHON: dict[Offset, str] = {
     Offset.OPEN: THOST_FTDC_OF_Open,
     Offset.CLOSE: THOST_FTDC_OFEN_Close,
     Offset.CLOSETODAY: THOST_FTDC_OFEN_CloseToday,
     Offset.CLOSEYESTERDAY: THOST_FTDC_OFEN_CloseYesterday,
 }
-OFFSET_ROHON2VT: Dict[str, Offset] = {v: k for k, v in OFFSET_VT2ROHON.items()}
+OFFSET_ROHON2VT: dict[str, Offset] = {v: k for k, v in OFFSET_VT2ROHON.items()}
 
 # 交易所映射
-EXCHANGE_ROHON2VT: Dict[str, Exchange] = {
+EXCHANGE_ROHON2VT: dict[str, Exchange] = {
     "CFFEX": Exchange.CFFEX,
     "SHFE": Exchange.SHFE,
     "CZCE": Exchange.CZCE,
@@ -117,7 +117,7 @@ EXCHANGE_ROHON2VT: Dict[str, Exchange] = {
 }
 
 # 产品类型映射
-PRODUCT_ROHON2VT: Dict[str, Product] = {
+PRODUCT_ROHON2VT: dict[str, Product] = {
     THOST_FTDC_PC_Futures: Product.FUTURES,
     THOST_FTDC_PC_Options: Product.OPTION,
     THOST_FTDC_PC_SpotOption: Product.OPTION,
@@ -125,7 +125,7 @@ PRODUCT_ROHON2VT: Dict[str, Product] = {
 }
 
 # 期权类型映射
-OPTIONTYPE_ROHON2VT: Dict[str, OptionType] = {
+OPTIONTYPE_ROHON2VT: dict[str, OptionType] = {
     THOST_FTDC_CP_CallOptions: OptionType.CALL,
     THOST_FTDC_CP_PutOptions: OptionType.PUT
 }
@@ -135,7 +135,7 @@ MAX_FLOAT = sys.float_info.max                  # 浮点数极限值
 CHINA_TZ = ZoneInfo("Asia/Shanghai")       # 中国时区
 
 # 合约数据全局缓存字典
-symbol_contract_map: Dict[str, ContractData] = {}
+symbol_contract_map: dict[str, ContractData] = {}
 
 
 class RohonGateway(BaseGateway):
@@ -145,7 +145,7 @@ class RohonGateway(BaseGateway):
 
     default_name: str = "ROHON"
 
-    default_setting: Dict[str, str] = {
+    default_setting: dict[str, str] = {
         "用户名": "",
         "密码": "",
         "经纪商代码": "",
@@ -155,7 +155,7 @@ class RohonGateway(BaseGateway):
         "授权编码": ""
     }
 
-    exchanges: List[str] = list(EXCHANGE_ROHON2VT.values())
+    exchanges: list[str] = list(EXCHANGE_ROHON2VT.values())
 
     def __init__(self, event_engine: EventEngine, gateway_name: str) -> None:
         """构造函数"""
@@ -431,10 +431,10 @@ class RohonTdApi(TdApi):
 
         self.frontid: int = 0
         self.sessionid: int = 0
-        self.order_data: List[dict] = []
-        self.trade_data: List[dict] = []
-        self.positions: Dict[str, PositionData] = {}
-        self.sysid_orderid_map: Dict[str, str] = {}
+        self.order_data: list[dict] = []
+        self.trade_data: list[dict] = []
+        self.positions: dict[str, PositionData] = {}
+        self.sysid_orderid_map: dict[str, str] = {}
 
     def onFrontConnected(self) -> None:
         """服务器连接成功回报"""
