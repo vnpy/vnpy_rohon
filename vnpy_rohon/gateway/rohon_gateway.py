@@ -270,7 +270,7 @@ class RohonMdApi(MdApi):
 
     def onRspUserLogin(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """用户登录请求回报"""
-        if not error["ErrorID"]:
+        if not error or not error["ErrorID"]:
             self.login_status = True
             self.gateway.write_log("行情服务器登录成功")
 
