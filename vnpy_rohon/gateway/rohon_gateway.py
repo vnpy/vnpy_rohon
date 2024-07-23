@@ -9,6 +9,7 @@ import sys
 from datetime import datetime
 from time import sleep
 from pathlib import Path
+from copy import copy
 
 from vnpy.event import EventEngine
 from vnpy.trader.constant import (
@@ -574,9 +575,7 @@ class RohonTdApi(TdApi):
 
         if last:
             for position in self.positions.values():
-                self.gateway.on_position(position)
-
-            self.positions.clear()
+                self.gateway.on_position(copy(position))
 
     def onRspQryTradingAccount(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """资金查询回报"""
@@ -848,6 +847,14 @@ class RohonTdApi(TdApi):
         """查询持仓"""
         if not symbol_contract_map:
             return
+
+        # 清空缓存的仓位数据
+        for position in self.positions.values():
+            position.volume = 0
+            position.yd_volume = 0
+            position.price = 0
+            position.frozen = 0
+            position.pnl = 0
 
         req: dict = {
             "BrokerID": self.brokerid,
