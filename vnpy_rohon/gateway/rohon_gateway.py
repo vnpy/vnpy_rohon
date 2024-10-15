@@ -6,7 +6,7 @@ from "librohonbase.so" to "librohonbase.so.1.1"
 """
 
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 from pathlib import Path
 
@@ -303,7 +303,7 @@ class RohonMdApi(MdApi):
             return
 
         # 对大商所的交易日字段取本地日期
-        if not data["ActionDay"] or contract.exchange == Exchange.DCE:
+        if not data["ActionDay"] or contract.exchange in {Exchange.DCE, Exchange.GFEX}:
             date_str: str = self.current_date
         else:
             date_str: str = data["ActionDay"]
@@ -699,6 +699,14 @@ class RohonTdApi(TdApi):
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
         dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+
+        # 对于大商所和广期所夜盘成交时间戳的特殊处理
+        if contract.exchange in {Exchange.DCE, Exchange.GFEX}:
+            now: datetime = datetime.now(CHINA_TZ)
+
+            # 如果比本机时间时间提前超过10分钟，则认为是夜盘，日期减1
+            if (dt - now).total_seconds() >= 600:
+                dt -= timedelta(days=1)
 
         trade: TradeData = TradeData(
             symbol=symbol,
