@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import importlib_metadata
+
+from importlib import metadata
 
 from .gateway import RohonGateway
 
@@ -29,6 +30,6 @@ __all__ = ["RohonGateway"]
 
 
 try:
-    __version__ = importlib_metadata.version("vnpy_rohon")
-except importlib_metadata.PackageNotFoundError:
+    __version__ = metadata.version("vnpy_rohon")
+except metadata.PackageNotFoundError:
     __version__ = "dev"

@@ -161,8 +161,8 @@ class RohonGateway(BaseGateway):
         """构造函数"""
         super().__init__(event_engine, gateway_name)
 
-        self.td_api: "RohonTdApi" = RohonTdApi(self)
-        self.md_api: "RohonMdApi" = RohonMdApi(self)
+        self.td_api: RohonTdApi = RohonTdApi(self)
+        self.md_api: RohonMdApi = RohonMdApi(self)
 
     def connect(self, setting: dict) -> None:
         """连接交易接口"""
