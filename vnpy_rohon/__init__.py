@@ -25,6 +25,9 @@ import importlib_metadata
 from .gateway import RohonGateway
 
 
+__all__ = ["RohonGateway"]
+
+
 try:
     __version__ = importlib_metadata.version("vnpy_rohon")
 except importlib_metadata.PackageNotFoundError:
