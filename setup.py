@@ -16,7 +16,7 @@ def get_ext_modules() -> list:
             "-Wno-delete-incomplete",
             "-Wno-sign-compare",
         ]
-        extra_link_args = ["-lstdc++"]
+        extra_link_args = ["-lstdc++", "-Wl,-rpath,$ORIGIN"]
         runtime_library_dirs = ["$ORIGIN"]
 
     elif platform.system() == "Windows":
@@ -37,7 +37,7 @@ def get_ext_modules() -> list:
         define_macros=[],
         undef_macros=[],
         library_dirs=["vnpy_rohon/api/libs", "vnpy_rohon/api"],
-        libraries=["thostmduserapi_se", "thosttraderapi_se"],
+        libraries=["thostmduserapi_se", "thosttraderapi_se", "rohonbase"],
         extra_compile_args=extra_compile_flags,
         extra_link_args=extra_link_args,
         runtime_library_dirs=runtime_library_dirs,
@@ -55,7 +55,7 @@ def get_ext_modules() -> list:
         define_macros=[],
         undef_macros=[],
         library_dirs=["vnpy_rohon/api/libs", "vnpy_rohon/api"],
-        libraries=["thostmduserapi_se", "thosttraderapi_se"],
+        libraries=["thostmduserapi_se", "thosttraderapi_se", "rohonbase"],
         extra_compile_args=extra_compile_flags,
         extra_link_args=extra_link_args,
         runtime_library_dirs=runtime_library_dirs,
