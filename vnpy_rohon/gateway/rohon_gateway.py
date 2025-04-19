@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from time import sleep
 from pathlib import Path
 
-from vnpy.event import EventEngine
+from vnpy.event import EventEngine, Event
 from vnpy.trader.constant import (
     Direction,
     Offset,
@@ -95,7 +95,7 @@ ORDERTYPE_VT2ROHON: dict[OrderType, tuple] = {
     OrderType.FAK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_AV),
     OrderType.FOK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_CV),
 }
-ORDERTYPE_ROHON2VT: dict[str, OrderType] = {v: k for k, v in ORDERTYPE_VT2ROHON.items()}
+ORDERTYPE_ROHON2VT: dict[tuple, OrderType] = {v: k for k, v in ORDERTYPE_VT2ROHON.items()}
 
 # 开平方向映射
 OFFSET_VT2ROHON: dict[Offset, str] = {
@@ -161,8 +161,10 @@ class RohonGateway(BaseGateway):
         """构造函数"""
         super().__init__(event_engine, gateway_name)
 
-        self.td_api: "RohonTdApi" = RohonTdApi(self)
-        self.md_api: "RohonMdApi" = RohonMdApi(self)
+        self.td_api: RohonTdApi = RohonTdApi(self)
+        self.md_api: RohonMdApi = RohonMdApi(self)
+
+        self.count: int = 0
 
     def connect(self, setting: dict) -> None:
         """连接交易接口"""
@@ -213,10 +215,10 @@ class RohonGateway(BaseGateway):
         """输出错误信息日志"""
         error_id: int = error["ErrorID"]
         error_msg: str = error["ErrorMsg"]
-        msg: str = f"{msg}，代码：{error_id}，信息：{error_msg}"
+        msg = f"{msg}，代码：{error_id}，信息：{error_msg}"
         self.write_log(msg)
 
-    def process_timer_event(self, event) -> None:
+    def process_timer_event(self, event: Event) -> None:
         """定时事件处理"""
         self.count += 1
         if self.count < 2:
@@ -231,7 +233,6 @@ class RohonGateway(BaseGateway):
 
     def init_query(self) -> None:
         """初始化查询任务"""
-        self.count: int = 0
         self.query_functions: list = [self.query_account, self.query_position]
         self.event_engine.register(EVENT_TIMER, self.process_timer_event)
 
@@ -306,11 +307,11 @@ class RohonMdApi(MdApi):
         if not data["ActionDay"] or contract.exchange in {Exchange.DCE, Exchange.GFEX}:
             date_str: str = self.current_date
         else:
-            date_str: str = data["ActionDay"]
+            date_str = data["ActionDay"]
 
         timestamp: str = f"{date_str} {data['UpdateTime']}.{int(data['UpdateMillisec']/100)}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S.%f")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tick: TickData = TickData(
             symbol=symbol,
@@ -658,7 +659,7 @@ class RohonTdApi(TdApi):
 
         timestamp: str = f"{data['InsertDate']} {data['InsertTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
         if tp not in ORDERTYPE_ROHON2VT:
@@ -698,7 +699,7 @@ class RohonTdApi(TdApi):
 
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         # 对于大商所和广期所夜盘成交时间戳的特殊处理
         if contract.exchange in {Exchange.DCE, Exchange.GFEX}:
@@ -827,7 +828,7 @@ class RohonTdApi(TdApi):
         order: OrderData = req.create_order_data(orderid, self.gateway_name)
         self.gateway.on_order(order)
 
-        return order.vt_orderid
+        return order.vt_orderid     # type: ignore
 
     def cancel_order(self, req: CancelRequest) -> None:
         """委托撤单"""
