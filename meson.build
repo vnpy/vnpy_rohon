@@ -94,7 +94,7 @@ else  # Linux
   thostmduserapi_lib = cpp.find_library('thostmduserapi_se', 
                                        dirs: [lib_dir],
                                        required: true)
-  thosttraderapi_lib = cpp.find_library('thosttraderapi_se', 
+  thosttraderapi_lib = cpp.find_library('thosttraderapi_se_6.3.19', 
                                        dirs: [lib_dir],
                                        required: true)
 endif
@@ -154,11 +154,12 @@ if host_machine.system() == 'windows'
 else  # Linux
   api_libs = [
     'vnpy_rohon/api/libthostmduserapi_se.so',
-    'vnpy_rohon/api/libthosttraderapi_se.so',
+    'vnpy_rohon/api/libthosttraderapi_se_6.3.19.so'
   ]
   
   install_data(
     api_libs,
     install_dir: py.get_install_dir() / 'vnpy_rohon/api'
   )
+
 endif
