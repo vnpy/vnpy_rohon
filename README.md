@@ -76,6 +76,10 @@ if __name__ == "__main__":
 
 ## Linux运行
 
-运行时需要添加环境变量，用于实现librohonbase二进制库得加载：
+Linux系统下运行API时，融航接口需要加载两个so文件：librohonbase.so 和 libLinuxDataCollect.so。
 
-export LD_LIBRARY_PATH=/usr/local/lib/python3.10/dist-packages/vnpy_rohon/api:$LD_LIBRARY_PATH
+为了确保这两个文件能被正常加载，需要将其放置到系统lib目录下。
+
+因此在Linux系统上进行安装时，推荐git clone当前仓库后，使用脚本执行安装：
+
+> sudo bash install_rohon.sh
