@@ -154,7 +154,7 @@ if host_machine.system() == 'windows'
 else  # Linux
   api_libs = [
     'vnpy_rohon/api/libthostmduserapi_se.so',
-    'vnpy_rohon/api/libthosttraderapi_se_6.3.19.so',
+    'vnpy_rohon/api/thosttraderapi_se_6.3.19.so',
     'vnpy_rohon/api/librohonbase.so',
     'vnpy_rohon/api/libLinuxDataCollect.so'
   ]
