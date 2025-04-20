@@ -73,3 +73,9 @@ if __name__ == "__main__":
 ## 连接
  
 如果启动时报错“ImportError: DLL load failed: 找不到指定的模块。”，可自行下载vcredist2010解决。
+
+## Linux运行
+
+运行时需要添加环境变量，用于实现librohonbase二进制库得加载：
+
+export LD_LIBRARY_PATH=/usr/local/lib/python3.10/dist-packages/vnpy_rohon/api:$LD_LIBRARY_PATH
