@@ -145,6 +145,8 @@ if host_machine.system() == 'windows'
   api_libs = [
     'vnpy_rohon/api/thostmduserapi_se.dll',
     'vnpy_rohon/api/thosttraderapi_se.dll',
+    'vnpy_rohon/api/RohonBaseV64.dll',
+    'vnpy_rohon/api/WinDataCollect.dll'
   ]
   
   install_data(
