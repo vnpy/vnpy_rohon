@@ -349,6 +349,9 @@ class RohonMdApi(MdApi):
             tick.ask_volume_4 = data["AskVolume4"]
             tick.ask_volume_5 = data["AskVolume5"]
 
+        # 增加获取昨日结算价
+        tick.extra = {"pre_settlement": data["PreSettlementPrice"]}
+
         self.gateway.on_tick(tick)
 
     def connect(self, address: str, userid: str, password: str, brokerid: str) -> None:
@@ -580,12 +583,34 @@ class RohonTdApi(TdApi):
         account: AccountData = AccountData(
             accountid=data["AccountID"],
             balance=data["Balance"],
-            frozen=data["FrozenMargin"] + data["FrozenCash"] + data["FrozenCommission"],
+            frozen=data["CurrMargin"],
             gateway_name=self.gateway_name
         )
         account.available = data["Available"]
 
-        self.gateway.on_account(account)
+        account1: AccountData = AccountData(
+            accountid=account.accountid + "_期货资金额",
+            balance=round(account.balance, 2),
+            frozen=round(account.frozen, 2),
+            gateway_name=self.gateway_name
+        )
+        account1.available = round(account1.available, 2)
+        self.gateway.on_account(account1)
+
+        if account.balance:
+            frozen2 = account.frozen / account.balance * 100
+            frozen2 = round(frozen2, 1)
+        else:
+            frozen2 = 0
+
+        account2: AccountData = AccountData(
+            accountid=account.accountid + "_期货百分比",
+            balance=100,
+            frozen=frozen2,
+            gateway_name=self.gateway_name
+        )
+        account2.available = round(account2.available, 2)
+        self.gateway.on_account(account2)
 
     def onRspQryInstrument(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """合约查询回报"""
