@@ -64,6 +64,9 @@ if host_machine.system() == 'windows'
   thosttraderapi_lib = cpp.find_library('thosttraderapi_se', 
                                        dirs: [lib_dir, api_dir],
                                        required: true)
+  
+  # Windows不需要额外链接依赖库
+  extra_libs = []
 
 # 设置Linux特定编译选项
 else  # Linux
@@ -97,6 +100,9 @@ else  # Linux
   thosttraderapi_lib = cpp.find_library('thosttraderapi_se_6.3.19', 
                                        dirs: [lib_dir],
                                        required: true)
+  
+  # Linux需要显式链接依赖库
+  extra_libs = ['-lrohonbase', '-lLinuxDataCollect']
 endif
 
 # 创建MD模块扩展
@@ -108,7 +114,8 @@ md_module = py.extension_module(
   cpp_args: extra_cpp_args,
   link_args: extra_link_args + [
     '-L' + lib_dir,
-    '-lthostmduserapi_se',
+    '-lthostmduserapi_se'
+  ] + extra_libs + [
     '-Wl,-rpath,$ORIGIN'
   ],
   install: true,
@@ -125,7 +132,8 @@ td_module = py.extension_module(
   cpp_args: extra_cpp_args,
   link_args: extra_link_args + [
     '-L' + lib_dir,
-    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.3.19'),
+    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.3.19')
+  ] + extra_libs + [
     '-Wl,-rpath,$ORIGIN'
   ],
   install: true,
