@@ -64,9 +64,6 @@ if host_machine.system() == 'windows'
   thosttraderapi_lib = cpp.find_library('thosttraderapi_se', 
                                        dirs: [lib_dir, api_dir],
                                        required: true)
-  
-  # Windows不需要额外链接依赖库
-  extra_libs = []
 
 # 设置Linux特定编译选项
 else  # Linux
@@ -80,7 +77,6 @@ else  # Linux
   
   extra_link_args = [
     '-lstdc++',
-    '-Wl,-rpath,$ORIGIN',  # 添加rpath设置，使库能在运行时找到同目录下的动态库
   ]
   
   # 设置库目录
@@ -100,9 +96,6 @@ else  # Linux
   thosttraderapi_lib = cpp.find_library('thosttraderapi_se_6.3.19', 
                                        dirs: [lib_dir],
                                        required: true)
-  
-  # Linux需要显式链接依赖库
-  extra_libs = ['-lrohonbase', '-lLinuxDataCollect']
 endif
 
 # 创建MD模块扩展
@@ -110,12 +103,11 @@ md_module = py.extension_module(
   'vnrohonmd',
   sources: ['vnpy_rohon/api/vnrohon/vnrohonmd/vnrohonmd.cpp'],
   include_directories: include_dirs,
-  dependencies: [py_dep, thostmduserapi_lib],
+  dependencies: [py_dep],
   cpp_args: extra_cpp_args,
   link_args: extra_link_args + [
     '-L' + lib_dir,
-    '-lthostmduserapi_se'
-  ] + extra_libs + [
+    '-lthostmduserapi_se',
     '-Wl,-rpath,$ORIGIN'
   ],
   install: true,
@@ -128,12 +120,11 @@ td_module = py.extension_module(
   'vnrohontd',
   sources: ['vnpy_rohon/api/vnrohon/vnrohontd/vnrohontd.cpp'],
   include_directories: include_dirs,
-  dependencies: [py_dep, thosttraderapi_lib],
+  dependencies: [py_dep],
   cpp_args: extra_cpp_args,
   link_args: extra_link_args + [
     '-L' + lib_dir,
-    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.3.19')
-  ] + extra_libs + [
+    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.3.19'),
     '-Wl,-rpath,$ORIGIN'
   ],
   install: true,
