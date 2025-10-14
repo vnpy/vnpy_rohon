@@ -106,8 +106,13 @@ md_module = py.extension_module(
   include_directories: include_dirs,
   dependencies: [py_dep, thostmduserapi_lib],
   cpp_args: extra_cpp_args,
-  link_args: extra_link_args,
+  link_args: extra_link_args + [
+    '-L' + lib_dir,
+    '-lthostmduserapi_se',
+    '-Wl,-rpath,$ORIGIN'
+  ],
   install: true,
+  install_rpath: '$ORIGIN',
   subdir: 'vnpy_rohon/api'
 )
 
@@ -118,8 +123,13 @@ td_module = py.extension_module(
   include_directories: include_dirs,
   dependencies: [py_dep, thosttraderapi_lib],
   cpp_args: extra_cpp_args,
-  link_args: extra_link_args,
+  link_args: extra_link_args + [
+    '-L' + lib_dir,
+    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.3.19'),
+    '-Wl,-rpath,$ORIGIN'
+  ],
   install: true,
+  install_rpath: '$ORIGIN',
   subdir: 'vnpy_rohon/api'
 )
 
