@@ -1,6 +1,6 @@
 [project]
 name = "vnpy_rohon"
-version = "6.5.1.21"
+version = "6.5.1.22"
 description = "Rohon gateway for vn.py quant trading framework."
 readme = "README.md"
 license = {text = "MIT"}
@@ -40,6 +40,7 @@ build-backend = "mesonpy"
 
 [tool.mesonpy]
 args = ['--vsenv']
+packages = ["vnpy_rohon]
 
 [tool.mesonpy.distribution]
 include = [
