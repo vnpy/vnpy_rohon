@@ -28,7 +28,7 @@ int reqParkedOrderAction(const dict &req, int reqid);
 
 int reqOrderAction(const dict &req, int reqid);
 
-int reqQueryMaxOrderVolume(const dict &req, int reqid);
+int reqQryMaxOrderVolume(const dict &req, int reqid);
 
 int reqSettlementInfoConfirm(const dict &req, int reqid);
 
@@ -77,6 +77,8 @@ int reqQryProduct(const dict &req, int reqid);
 int reqQryInstrument(const dict &req, int reqid);
 
 int reqQryDepthMarketData(const dict &req, int reqid);
+
+int reqQryTraderOffer(const dict &req, int reqid);
 
 int reqQrySettlementInfo(const dict &req, int reqid);
 
@@ -161,4 +163,60 @@ int reqFromBankToFutureByFuture(const dict &req, int reqid);
 int reqFromFutureToBankByFuture(const dict &req, int reqid);
 
 int reqQueryBankAccountMoneyByFuture(const dict &req, int reqid);
+
+int reqQryClassifiedInstrument(const dict &req, int reqid);
+
+int reqQryCombPromotionParam(const dict &req, int reqid);
+
+int reqQryRiskSettleInvstPosition(const dict &req, int reqid);
+
+int reqQryRiskSettleProductStatus(const dict &req, int reqid);
+
+int reqQrySPBMFutureParameter(const dict &req, int reqid);
+
+int reqQrySPBMOptionParameter(const dict &req, int reqid);
+
+int reqQrySPBMIntraParameter(const dict &req, int reqid);
+
+int reqQrySPBMInterParameter(const dict &req, int reqid);
+
+int reqQrySPBMPortfDefinition(const dict &req, int reqid);
+
+int reqQrySPBMInvestorPortfDef(const dict &req, int reqid);
+
+int reqQryInvestorPortfMarginRatio(const dict &req, int reqid);
+
+int reqQryInvestorProdSPBMDetail(const dict &req, int reqid);
+
+int reqQryInvestorCommoditySPMMMargin(const dict &req, int reqid);
+
+int reqQryInvestorCommodityGroupSPMMMargin(const dict &req, int reqid);
+
+int reqQrySPMMInstParam(const dict &req, int reqid);
+
+int reqQrySPMMProductParam(const dict &req, int reqid);
+
+int reqQrySPBMAddOnInterParameter(const dict &req, int reqid);
+
+int reqQryRCAMSCombProductInfo(const dict &req, int reqid);
+
+int reqQryRCAMSInstrParameter(const dict &req, int reqid);
+
+int reqQryRCAMSIntraParameter(const dict &req, int reqid);
+
+int reqQryRCAMSInterParameter(const dict &req, int reqid);
+
+int reqQryRCAMSShortOptAdjustParam(const dict &req, int reqid);
+
+int reqQryRCAMSInvestorCombPosition(const dict &req, int reqid);
+
+int reqQryInvestorProdRCAMSMargin(const dict &req, int reqid);
+
+int reqQryRULEInstrParameter(const dict &req, int reqid);
+
+int reqQryRULEIntraParameter(const dict &req, int reqid);
+
+int reqQryRULEInterParameter(const dict &req, int reqid);
+
+int reqQryInvestorProdRULEMargin(const dict &req, int reqid);
 
