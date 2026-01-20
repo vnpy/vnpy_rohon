@@ -1,4 +1,4 @@
-// vnctpmd.cpp : 定义 DLL 应用程序的导出函数。
+// vnrohonmd.cpp : 定义 DLL 应用程序的导出函数。
 //
 
 #include "vnrohontd.h"
