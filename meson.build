@@ -1,7 +1,7 @@
 project(
   'vnpy_rohon',
   'cpp',
-  version: '6.7.2.0',
+  version: '6.7.2.1',
   license: 'MIT',
   meson_version: '>=1.7.0',
   default_options: [
