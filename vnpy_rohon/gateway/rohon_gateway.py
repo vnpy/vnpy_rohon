@@ -1,4 +1,5 @@
 import sys
+import os
 from datetime import datetime, timedelta
 from time import sleep
 from pathlib import Path
@@ -368,7 +369,7 @@ class RohonMdApi(MdApi):
         # 禁止重复发起连接，会导致异常崩溃
         if not self.connect_status:
             path: Path = get_folder_path(self.gateway_name.lower())
-            self.createFtdcMdApi((str(path) + "\\Md").encode("GBK"))
+            self.createFtdcMdApi(os.fsencode(path / "Md"))
 
             self.registerFront(address)
             self.init()
@@ -750,7 +751,7 @@ class RohonTdApi(TdApi):
 
         if not self.connect_status:
             path: Path = get_folder_path(self.gateway_name.lower())
-            self.createFtdcTraderApi((str(path) + "\\Td").encode("GBK"))
+            self.createFtdcTraderApi(os.fsencode(path / "Td"))
 
             self.subscribePrivateTopic(0)
             self.subscribePublicTopic(0)
