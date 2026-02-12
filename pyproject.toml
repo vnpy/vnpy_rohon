@@ -1,6 +1,6 @@
 [project]
 name = "vnpy_rohon"
-version = "6.7.2.1"
+version = "6.7.2.2"
 description = "Rohon gateway for vn.py quant trading framework."
 readme = "README.md"
 license = {text = "MIT"}
