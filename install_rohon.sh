@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 执行Python安装命令
-python3 -m pip install .
+python3 -m pip install . --no-deps
 
 # 获取vnpy_rohon的安装路径
 SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])")

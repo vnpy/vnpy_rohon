@@ -1,7 +1,7 @@
 project(
   'vnpy_rohon',
   'cpp',
-  version: '6.7.2.0',
+  version: '6.7.2.5',
   license: 'MIT',
   meson_version: '>=1.7.0',
   default_options: [
@@ -93,7 +93,7 @@ else  # Linux
   thostmduserapi_lib = cpp.find_library('thostmduserapi_se', 
                                        dirs: [lib_dir],
                                        required: true)
-  thosttraderapi_lib = cpp.find_library('thosttraderapi_se_6.3.19', 
+  thosttraderapi_lib = cpp.find_library('thosttraderapi_se_6.7.2', 
                                        dirs: [lib_dir],
                                        required: true)
 endif
@@ -124,7 +124,7 @@ td_module = py.extension_module(
   cpp_args: extra_cpp_args,
   link_args: extra_link_args + [
     '-L' + lib_dir,
-    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.3.19'),
+    '-l' + (host_machine.system() == 'windows' ? 'thosttraderapi_se' : 'thosttraderapi_se_6.7.2'),
     '-Wl,-rpath,$ORIGIN'
   ],
   install: true,
@@ -165,7 +165,7 @@ if host_machine.system() == 'windows'
 else  # Linux
   api_libs = [
     'vnpy_rohon/api/libthostmduserapi_se.so',
-    'vnpy_rohon/api/thosttraderapi_se_6.3.19.so',
+    'vnpy_rohon/api/thosttraderapi_se_6.7.2.so',
     'vnpy_rohon/api/librohonbase.so',
     'vnpy_rohon/api/libLinuxDataCollect.so'
   ]
