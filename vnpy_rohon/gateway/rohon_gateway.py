@@ -1,3 +1,5 @@
+"""实现融航资管交易接口。"""
+
 import sys
 import os
 from datetime import datetime, timedelta
@@ -240,7 +242,7 @@ class RohonGateway(BaseGateway):
 
 
 class RohonMdApi(MdApi):
-    """"""
+    """对接融航资管的行情接口。"""
 
     def __init__(self, gateway: RohonGateway) -> None:
         """构造函数"""
@@ -407,7 +409,7 @@ class RohonMdApi(MdApi):
 
 
 class RohonTdApi(TdApi):
-    """"""
+    """对接融航资管的交易接口。"""
 
     def __init__(self, gateway: RohonGateway) -> None:
         """构造函数"""
