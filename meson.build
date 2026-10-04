@@ -155,7 +155,10 @@ if host_machine.system() == 'windows'
     'vnpy_rohon/api/thostmduserapi_se.dll',
     'vnpy_rohon/api/thosttraderapi_se.dll',
     'vnpy_rohon/api/RohonBaseV64.dll',
-    'vnpy_rohon/api/WinDataCollect.dll'
+    'vnpy_rohon/api/WinDataCollect.dll',
+    'vnpy_rohon/api/mfc100.dll',
+    'vnpy_rohon/api/msvcp100.dll',
+    'vnpy_rohon/api/msvcr100.dll'
   ]
   
   install_data(
@@ -180,6 +183,41 @@ endif
 # 可编辑安装的扩展在构建目录，厂商库仍在源码树。
 # 拷到扩展旁边后，Windows 在 .pyd 所在目录找 DLL，Linux 用扩展的 $ORIGIN 找 .so。
 # 这些拷贝不安装；正式安装仍由上面的 install_data 放到 site-packages。
-foreach lib : api_libs
-  fs.copyfile(lib)
-endforeach
+if host_machine.system() == 'windows'
+  foreach lib : api_libs
+    fs.copyfile(lib)
+  endforeach
+else
+  # libthostmduserapi_se.so 与 thosttraderapi_se_6.7.2.so 的 DT_RPATH 是 ./。
+  # 扩展自己的 $ORIGIN 只能找到直接依赖，找不到 librohonbase.so。
+  # 交易库还要再找 libLinuxDataCollect.so。libz.so.1 由系统 zlib 提供。
+  # 只改构建目录里的副本，不改源码树里的原文件。
+  patchelf = find_program('patchelf', required: true)
+  python_exe = find_program(python_cmd)
+  rpath_libs = [
+    'vnpy_rohon/api/libthostmduserapi_se.so',
+    'vnpy_rohon/api/thosttraderapi_se_6.7.2.so',
+  ]
+  foreach lib : api_libs
+    if lib in rpath_libs
+      unpatched = fs.copyfile(lib, fs.name(lib) + '.unpatched')
+      custom_target(
+        'rpath-' + fs.stem(lib),
+        input: unpatched,
+        output: fs.name(lib),
+        command: [
+          python_exe,
+          '-c',
+          'import shutil, subprocess, sys; shutil.copy2(sys.argv[1], sys.argv[2]); subprocess.check_call([sys.argv[3], "--force-rpath", "--set-rpath", "$ORIGIN", sys.argv[2]])',
+          '@INPUT@',
+          '@OUTPUT@',
+          patchelf.full_path(),
+        ],
+        build_by_default: true,
+        install: false,
+      )
+    else
+      fs.copyfile(lib)
+    endif
+  endforeach
+endif
