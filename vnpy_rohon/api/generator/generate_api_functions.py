@@ -1,25 +1,29 @@
-""""""
+"""
+从头文件生成融航交易接口的 C++ 绑定代码。
+"""
 import importlib
 
 
 class ApiGenerator:
     """API生成器"""""
 
-    def __init__(self, filename: str, prefix: str, name: str, class_name: str):
-        """Constructor"""
+    def __init__(self, filename: str, prefix: str, name: str, class_name: str) -> None:
+        """
+        保存头文件路径、前缀和类名，并加载结构体定义。
+        """
         self.filename = filename
         self.prefix = prefix
         self.name = name
         self.class_name = class_name
 
-        self.callbacks = {}
-        self.functions = {}
-        self.lines = {}
+        self.callbacks: dict[str, dict[str, str]] = {}
+        self.functions: dict[str, dict[str, str]] = {}
+        self.lines: dict[str, str] = {}
 
-        self.structs = {}
+        self.structs: dict[str, dict[str, str]] = {}
         self.load_struct()
 
-    def load_struct(self):
+    def load_struct(self) -> None:
         """加载Struct"""
         module_name = f"{self.prefix}_struct"
         module = importlib.import_module(module_name)
@@ -28,7 +32,7 @@ class ApiGenerator:
             if "__" not in name:
                 self.structs[name] = getattr(module, name)
 
-    def run(self):
+    def run(self) -> None:
         """运行生成"""
         self.f_cpp = open(self.filename)
 
@@ -51,7 +55,7 @@ class ApiGenerator:
 
         print("API生成成功")
 
-    def process_line(self, line: str):
+    def process_line(self, line: str) -> None:
         """处理每行"""
         line = line.replace(";", "")
         line = line.replace("\n", "")
@@ -63,7 +67,7 @@ class ApiGenerator:
         elif "virtual int Req" in line:
             self.process_function(line)
 
-    def process_callback(self, line: str):
+    def process_callback(self, line: str) -> None:
         """处理回掉函数"""
         name = line[line.index("On"):line.index("(")]
         self.lines[name] = line
@@ -71,37 +75,43 @@ class ApiGenerator:
         d = self.generate_arg_dict(line)
         self.callbacks[name] = d
 
-    def process_function(self, line: str):
+    def process_function(self, line: str) -> None:
         """处理主动函数"""
         name = line[line.index("Req"):line.index("(")]
 
         d = self.generate_arg_dict(line)
         self.functions[name] = d
 
-    def generate_arg_dict(self, line: str):
-        """生成参数字典"""
+    def generate_arg_dict(self, line: str) -> dict[str, str]:
+        """
+        从函数声明中解析参数名到 C++ 类型的映射。
+        """
         args_str = line[line.index("(") + 1:line.index(")")]
         if not args_str:
             return {}
         args = args_str.split(",")
 
-        d = {}
+        d: dict[str, str] = {}
         for arg in args:
             words = arg.split(" ")
             words = [word for word in words if word]
             d[words[1].replace("*", "")] = words[0]
         return d
 
-    def generate_header_define(self):
-        """"""
+    def generate_header_define(self) -> None:
+        """
+        生成回调序号宏定义头文件。
+        """
         filename = f"{self.prefix}_{self.name}_header_define.h"
         with open(filename, "w") as f:
             for n, name in enumerate(self.callbacks.keys()):
                 line = f"#define {name.upper()} {n}\n"
                 f.write(line)
 
-    def generate_header_process(self):
-        """"""
+    def generate_header_process(self) -> None:
+        """
+        生成处理任务函数的声明头文件。
+        """
         filename = f"{self.prefix}_{self.name}_header_process.h"
         with open(filename, "w") as f:
             for name in self.callbacks.keys():
@@ -109,8 +119,10 @@ class ApiGenerator:
                 line = f"void {name}(Task *task);\n\n"
                 f.write(line)
 
-    def generate_header_on(self):
-        """"""
+    def generate_header_on(self) -> None:
+        """
+        生成回调虚函数的声明头文件。
+        """
         filename = f"{self.prefix}_{self.name}_header_on.h"
         with open(filename, "w") as f:
             for name, d in self.callbacks.items():
@@ -134,8 +146,10 @@ class ApiGenerator:
 
                 f.write(line)
 
-    def generate_header_function(self):
-        """"""
+    def generate_header_function(self) -> None:
+        """
+        生成请求函数的声明头文件。
+        """
         filename = f"{self.prefix}_{self.name}_header_function.h"
         with open(filename, "w") as f:
             for name in self.functions.keys():
@@ -143,8 +157,10 @@ class ApiGenerator:
                 line = f"int {name}(const dict &req, int reqid);\n\n"
                 f.write(line)
 
-    def generate_source_task(self):
-        """"""
+    def generate_source_task(self) -> None:
+        """
+        生成把回调参数写入任务队列的源文件。
+        """
         filename = f"{self.prefix}_{self.name}_source_task.cpp"
         with open(filename, "w") as f:
             for name, d in self.callbacks.items():
@@ -179,8 +195,10 @@ class ApiGenerator:
                 f.write("\tthis->task_queue.push(task);\n")
                 f.write("};\n\n")
 
-    def generate_source_switch(self):
-        """"""
+    def generate_source_switch(self) -> None:
+        """
+        生成按任务名分发处理函数的源文件。
+        """
         filename = f"{self.prefix}_{self.name}_source_switch.cpp"
         with open(filename, "w") as f:
             for name in self.callbacks.keys():
@@ -191,8 +209,10 @@ class ApiGenerator:
                 f.write("\tbreak;\n")
                 f.write("}\n\n")
 
-    def generate_source_process(self):
-        """"""
+    def generate_source_process(self) -> None:
+        """
+        生成把任务数据转成字典并调用回调的源文件。
+        """
         filename = f"{self.prefix}_{self.name}_source_process.cpp"
         with open(filename, "w") as f:
             for name, d in self.callbacks.items():
@@ -256,8 +276,10 @@ class ApiGenerator:
                 f.write(f"\tthis->{on_name}({args_str});\n")
                 f.write("};\n\n")
 
-    def generate_source_function(self):
-        """"""
+    def generate_source_function(self) -> None:
+        """
+        生成把请求字典写入结构体并调用接口的源文件。
+        """
         filename = f"{self.prefix}_{self.name}_source_function.cpp"
         with open(filename, "w") as f:
             for name, d in self.functions.items():
@@ -282,8 +304,10 @@ class ApiGenerator:
                 f.write("\treturn i;\n")
                 f.write("};\n\n")
 
-    def generate_source_on(self):
-        """"""
+    def generate_source_on(self) -> None:
+        """
+        生成 pybind11 回调重载的源文件。
+        """
         filename = f"{self.prefix}_{self.name}_source_on.cpp"
         with open(filename, "w") as f:
             for name, d in self.callbacks.items():
@@ -320,8 +344,10 @@ class ApiGenerator:
                 f.write("\t}\n")
                 f.write("};\n\n")
 
-    def generate_source_module(self):
-        """"""
+    def generate_source_module(self) -> None:
+        """
+        生成 pybind11 模块方法绑定的源文件。
+        """
         filename = f"{self.prefix}_{self.name}_source_module.cpp"
         with open(filename, "w") as f:
             for name in self.functions.keys():
