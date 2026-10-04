@@ -1,5 +1,6 @@
 """实现融航资管交易接口。"""
 
+from collections.abc import Callable
 import sys
 import os
 from datetime import datetime, timedelta
@@ -133,8 +134,8 @@ OPTIONTYPE_ROHON2VT: dict[str, OptionType] = {
 }
 
 # 其他常量
-MAX_FLOAT = sys.float_info.max                  # 浮点数极限值
-CHINA_TZ = ZoneInfo("Asia/Shanghai")       # 中国时区
+MAX_FLOAT: float = sys.float_info.max                  # 浮点数极限值
+CHINA_TZ: ZoneInfo = ZoneInfo("Asia/Shanghai")       # 中国时区
 
 # 合约数据全局缓存字典
 symbol_contract_map: dict[str, ContractData] = {}
@@ -229,7 +230,7 @@ class RohonGateway(BaseGateway):
             return
         self.count = 0
 
-        func = self.query_functions.pop(0)
+        func: Callable[[], None] = self.query_functions.pop(0)
         func()
         self.query_functions.append(func)
 
@@ -279,6 +280,7 @@ class RohonMdApi(MdApi):
             self.login_status = True
             self.gateway.write_log("行情服务器登录成功")
 
+            symbol: str
             for symbol in self.subscribed:
                 self.subscribeMarketData(symbol)
         else:
@@ -806,7 +808,10 @@ class RohonTdApi(TdApi):
             return ""
         self.order_ref += 1
 
-        tp = ORDERTYPE_VT2ROHON[req.type]
+        tp: tuple = ORDERTYPE_VT2ROHON[req.type]
+        price_type: str
+        time_condition: str
+        volume_condition: str
         price_type, time_condition, volume_condition = tp
 
         rohon_req: dict = {
@@ -831,7 +836,7 @@ class RohonTdApi(TdApi):
         }
 
         self.reqid += 1
-        n = self.reqOrderInsert(rohon_req, self.reqid)
+        n: int = self.reqOrderInsert(rohon_req, self.reqid)
         if n:
             self.gateway.write_log(f"委托请求发送失败，错误代码：{n}")
             return ""
@@ -844,6 +849,9 @@ class RohonTdApi(TdApi):
 
     def cancel_order(self, req: CancelRequest) -> None:
         """委托撤单"""
+        frontid: str
+        sessionid: str
+        order_ref: str
         frontid, sessionid, order_ref = req.orderid.split("_")
 
         rohon_req: dict = {
